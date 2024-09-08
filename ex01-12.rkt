@@ -1,0 +1,13 @@
+#lang sicp
+(define (pascal x y)
+  (cond ((= y 1) 1)
+        ((= x y) 1)
+        (else (+ (pascal (- x 1) (- y 1))
+                 (pascal (- x 1) y)))))
+(pascal 3 2)
+(pascal 4 2)
+(pascal 4 3)
+(pascal 5 1)
+(pascal 5 2)
+(pascal 5 3)
+(pascal 5 4)
