@@ -1,0 +1,16 @@
+#lang sicp
+(define x (list (list 1 2) (list 3 4)))
+(define (reverse list1)
+  (define (iter list1 reverse-list)
+    (if (null? list1)
+        reverse-list
+        (iter (cdr list1) (cons (car list1) reverse-list))))
+  (iter list1 nil))
+(define (deep-reverse list1)
+  (define (iter list1 reverse-list)
+    (cond ((null? list1) reverse-list)
+          ((pair? list1) (iter (cons (deep-reverse (cdr list1)) (deep-reverse (car list1))) reverse-list))
+          (else (iter nil (cons list1 reverse-list)))))
+  (iter list1 nil))
+
+(deep-reverse x)
