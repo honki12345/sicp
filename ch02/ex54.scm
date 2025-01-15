@@ -1,0 +1,14 @@
+#lang sicp
+(define (equal? list1 list2)
+  (cond ((and (null? list1) (null? list2)) true)
+        ((and (pair? list1) (pair? list2))
+         (and (eq? (car list1) (car list2)) (equal? (cdr list1) (cdr list2))))
+        ((and (not (pair? list1)) (not (pair? list2)))
+         (eq? list1 list2))
+        (else false)))
+
+
+(equal? '(this is a list) '(this is a list))
+(equal? '(this is a list) '(this (is a) list))
+(equal? 'a 'a)
+(equal? 'a 'b)
