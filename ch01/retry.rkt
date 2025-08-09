@@ -1,0 +1,334 @@
+;; #lang sicp
+#lang racket/base
+
+10
+(+ 5 3 4)
+(- 9 1)
+(/ 6 2)
+(+ (* 2 4) (- 4 6))
+(define a 3)
+(define b (+ a 1))
+(+ a b (* a b))
+(= a b)
+(if (and (> b a) (< b (* a b )))
+    b
+    a)
+
+(cond ((= a 4) 6)
+      ((= b 4) (+ 6 7 a))
+      (else 25))
+(+ 2 (if (> b a) b a))
+(* (cond ((> a b) a)
+         ((< a b) b)
+         (else -1))
+   (+ a 1))
+
+
+(/ (+ 5 4 (- 2 (- 3 (+ 6
+                      (/ 4 5)))))
+   (* 3
+      (- 6 2)
+      (- 2 7)))
+
+;; ex1.3
+(define (ex1-3 x y z)
+  (cond ((and (> x z) (> y z)) (+ (* x x) (* y y)))
+        ((and (> y x) (> z x)) (+ (* y y) (* z z)))
+        (else (+ (* x x) (* z z)))))
+
+;; ex1.4
+(define (a-plus-abs-b a b)
+  ((if (> b 0) + -) a b))
+
+;; ex1.5
+(define (p) (p))
+(define (test x y)
+  (if (= x 0)
+      0
+      y))
+
+(define (sqrt-iter guess x)
+  (if (good-enough? guess x)
+      guess
+      (sqrt-iter (improve guess x)
+                 x)))
+(define (improve guess x)
+  (average guess (/ x guess)))
+(define (average x y)
+  (/ (+ x y) 2))
+(define (good-enough? guess x)
+  (< (abs (- (square guess) x))
+     0.001))
+(define (square x) (* x x))
+(define (sqrt x)
+  (sqrt-iter 1.0 x))
+
+;; ex1.6
+(define (new-if predicate then-clause else-clause)
+  (cond (predicate then-clause)
+        (else else-clause)))
+
+(define (sqrt-iter2 guess x)
+  (new-if (good-enough? guess x)
+          guess
+          (sqrt-iter2 (improve guess x)
+                      x)))
+(define (sqrt2 x) (sqrt-iter2 1.0 x))
+
+;; ex1.8
+(define (cube-iter guess x)
+  (if (good-enough? guess x)
+      guess
+      (cube-iter (cube-improve guess x)
+                 x)))
+
+(define (cube-improve y x)
+  (/ (+ (/ x
+           (* y y))
+        (* 2 y))
+     3))
+
+(define (cube-root x)
+  (cube-iter 1.0 x))
+
+;; ex1-9
+
+;; ex1-10
+(define (A x y)
+  (cond ((= y 0) 0)
+        ((= x 0) (* 2 y))
+        ((= y 1) 2)
+        (else (A (- x 1)
+                 (A x (- y 1))))))
+
+(define (count-change amount)
+  (cc amount 5))
+
+(define (cc amount kinds-of-coins)
+  (cond ((= amount 0) 1)
+        ((or (< amount 0) (= kinds-of-coins 0)) 0)
+        (else (+ (cc amount
+                     (- kinds-of-coins 1))
+                 (cc (- amount
+                        (first-denomination kinds-of-coins))
+                     kinds-of-coins)))))
+(define (first-denomination kinds-of-coins)
+  (cond ((= kinds-of-coins 1) 1)
+        ((= kinds-of-coins 2) 5)
+        ((= kinds-of-coins 3) 10)
+        ((= kinds-of-coins 4) 25)
+        ((= kinds-of-coins 5) 50)))
+
+;; ex1.11
+(define (ex1-11 n)
+  (if (< n 3)
+      n
+      (+ (ex1-11 (- n 1))
+         (* 2 (ex1-11 (- n 2)))
+         (* 3 (ex1-11 (- n 3))))))
+
+(define (ex1-11-2 n)
+  (if (< n 3)
+      n
+      (ex1-11-2-iter 2 1 0 n)))
+
+(define (ex1-11-2-iter a b c count)
+  (if (= count 3)
+      (+ a
+         (* 2 b)
+         (* 3 c))
+      (ex1-11-2-iter (+ a
+                        (* 2 b)
+                        (* 3 c))
+                     a
+                     b
+                     (- count 1))))
+
+;; ex1-12
+(define (ex1-12 row column)
+  (cond ((= column 1) 1)
+        ((= row column) 1)
+        (else (+ (ex1-12 (- row 1) (- column 1))
+                 (ex1-12 (- row 1) column)))))
+
+(define (expt b n)
+  (if (= n 0)
+      1
+      (* b (expt b (- n 1)))))
+
+(define (fast-expt b n)
+  (cond ((= n 0) 1)
+        ((even? n) (square (fast-expt b (/ n 2))))
+        (else (* b (fast-expt b (- n 1))))))
+
+(define (even? n)
+  (= (remainder n 2) 0))
+
+;; ex1-16
+(define (fast-expt2 b n)
+  (fast-expt-iter b n 1))
+(define (fast-expt-iter b n a)
+   (if (= n 0)
+       a
+       (if (even? n)
+           (fast-expt-iter (square b) (/ n 2) a)
+           (fast-expt-iter b (- n 1) (* a b)))))
+
+;; ex1-17
+(define (*2 a b)
+  (if (= b 0)
+      0
+      (+ a (*2 a (- b 1)))))
+(define (double a) (* 2 a))
+(define (halve a) (/ a 2))
+(define (*3 a b)
+  (cond ((= b 0) 0)
+        ((= b 1) a)
+        ((even? b) (double (*3 a (halve b))))
+        (else (+ a (*3 a (- b 1))))))
+
+;; ex1-18
+(define (*4 a b)
+  (*4-iter a b 0))
+(define (*4-iter a b sum)
+  (cond ((= b 0) 0)
+        ((= b 1) (+ a sum))
+        ((even? b) (*4-iter (double a) (halve b) sum))
+        (else (*4-iter a (- b 1) (+ a sum)))))
+
+(define (gcd a b)
+  (if (= b 0)
+      a
+      (gcd b (remainder a b))))
+
+(define (smallest-divisor n)
+  (find-divisor n 2))
+(define (find-divisor n test-divisor)
+  (cond ((> (square test-divisor) n) n)
+        ((divides? test-divisor n) test-divisor)
+        (else (find-divisor n (+ test-divisor 1)))))
+(define (divides? a b)
+  (= (remainder b a) 0))
+(define (prime? n)
+  (= n (smallest-divisor n)))
+(define (expmod base exp m)
+  (cond ((= exp 0) 1)
+        ((even? exp)
+         (remainder (square (expmod base (/ exp 2) m))
+                    m))
+        (else
+         (remainder (* base (expmod base (- exp 1) m))
+                    m))))
+(define (fermat-test n)
+  (define (try-it a)
+    (= (expmod a n n) a))
+  (try-it (+ 1 (random (- n 1)))))
+(define (fast-prime? n times)
+  (cond ((= times 0) #t)
+        ((fermat-test n) (fast-prime? n (- times 1)))
+        (else #f)))
+
+;; ex1-22
+(define (runtime) ( current-inexact-milliseconds))
+(define (timed-prime-test n)
+  (newline)
+  (display n)
+  (start-prime-test n (runtime)))
+(define (start-prime-test n start-time)
+  (if (prime? n)
+      (report-prime (- (runtime) start-time))
+      #f))
+(define (report-prime elapsed-time)
+  (display " *** ")
+  (display elapsed-time))
+
+;; (define (sum-integers a b)
+;;   (if (> a b)
+;;       0
+;;       (+ a (sum-integers (+ a 1) b))))
+
+(define (cube a)
+  (* a a a))
+
+;; (define (sum-cubes a b)
+;;   (if (> a b)
+;;       0
+;;       (+ (cube a) (sum-cubes (+ a 1) b))))
+
+;; (define (pi-sum a b)
+;;   (if (> a b)
+;;       0
+;;       (+ (/ 1.0 (* a (+ a 2)))
+;;          (pi-sum (+ a 4) b))))
+
+
+(define (sum-cubes a b)
+  (sum cube a inc b))
+(define (identity x) x)
+(define (sum-integers a b)
+  (sum identity a inc b))
+(define (pi-sum a b)
+  (define (pi-term x)
+    (/ 1.0 (* x (+ x 2))))
+  (define (pi-next x)
+    (+ x 4))
+  (sum pi-term a pi-next b))
+
+(define (integral f a b dx)
+  (define (add-dx x) (+ x dx))
+  (* (sum f (+ a (/ dx 2.0)) add-dx b)
+     dx))
+
+
+;; ex1.29
+
+;; ex1.30
+
+(define (sum term a next b)
+  (define (iter a result)
+    (if (> a b)
+        result
+        (iter (next a) (+ result (term a)))))
+  (iter a 0))
+
+
+;; ex1.31
+(define (sum2 term a next b)
+  (if (> a b)
+      0
+      (+ (term a)
+         (sum2 term (next a) next b))))
+
+
+(define (pi-product b)
+  (define (pi-product-term a)
+    (square
+     (/ a (- a 1.0))))
+  (define (pi-product-next a)
+    (+ a 2))
+  (* 8 (product pi-product-term 4 pi-product-next b)))
+
+(define (product term a next b)
+  (if (> a b)
+      1
+      (* (term a)
+         (product term (next a) next b))))
+;; 1.31 - b
+(define (product2 term a next b)
+  (define (product-iter a result)
+    (if (> a b)
+        result
+        (product-iter (next a) (* (term a) result))))
+  (product-iter a 1))
+
+(define (inc a) (+ a 1))
+
+(define (product-test a b)
+  (product identity a inc b))
+(define (product-test2 a b)
+  (product2 identity a inc b))
+
+;; ex1.32
+
+(define (accumulate combiner null-value term a next b)
+  b)
