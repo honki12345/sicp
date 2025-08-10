@@ -201,16 +201,8 @@
       a
       (gcd b (remainder a b))))
 
-(define (smallest-divisor n)
-  (find-divisor n 2))
-(define (find-divisor n test-divisor)
-  (cond ((> (square test-divisor) n) n)
-        ((divides? test-divisor n) test-divisor)
-        (else (find-divisor n (+ test-divisor 1)))))
 (define (divides? a b)
   (= (remainder b a) 0))
-(define (prime? n)
-  (= n (smallest-divisor n)))
 (define (expmod base exp m)
   (cond ((= exp 0) 1)
         ((even? exp)
@@ -231,16 +223,59 @@
 ;; ex1-22
 (define (runtime) ( current-inexact-milliseconds))
 (define (timed-prime-test n)
-  (newline)
-  (display n)
   (start-prime-test n (runtime)))
+(define (prime? n)
+  (= n (smallest-divisor n)))
+(define (prime?2 n)
+  (= n (smallest-divisor2 n)))
+(define (smallest-divisor n)
+  (find-divisor n 2))
+(define (smallest-divisor2 n)
+  (find-divisor2 n 2))
+(define (find-divisor n test-divisor)
+  (cond ((> (square test-divisor) n) n)
+        ((divides? test-divisor n) test-divisor)
+        (else (find-divisor n (+ test-divisor 1)))))
+(define (find-divisor2 n test-divisor)
+  (define (next n)
+    (if (= n 2)
+        3
+        (+ n 2)))
+  (cond ((> (square test-divisor) n) n)
+        ((divides? test-divisor n) test-divisor)
+        (else (find-divisor2 n (next test-divisor)))))
 (define (start-prime-test n start-time)
   (if (prime? n)
-      (report-prime (- (runtime) start-time))
+      (report-prime n (- (runtime) start-time))
       #f))
-(define (report-prime elapsed-time)
+(define (start-prime-test2 n start-time)
+  (if (prime?2 n)
+      (report-prime n (- (runtime) start-time))
+      #f))
+(define (report-prime n elapsed-time)
+  (newline)
+  (display n)
   (display " *** ")
   (display elapsed-time))
+(define (search-for-primes a b)
+  (cond ((> a b) (newline) (display "done"))
+        ((even? a) (search-for-primes (+ a 1) b))
+        (else (timed-prime-test a) (search-for-primes (+ a 2) b))))
+
+(search-for-primes 1000 1020)
+(search-for-primes 10000 10050)
+(search-for-primes 100000 100045)
+(search-for-primes 1000000 1000038)
+
+;; ex1-23
+(display "ex1-23")
+(start-prime-test 1009 (runtime))
+(start-prime-test2 1009 (runtime))
+(start-prime-test 10007 (runtime))
+(start-prime-test2 10007 (runtime))
+(start-prime-test 100003 (runtime))
+(start-prime-test2 100003 (runtime))
+
 
 ;; (define (sum-integers a b)
 ;;   (if (> a b)
@@ -278,6 +313,37 @@
   (define (add-dx x) (+ x dx))
   (* (sum f (+ a (/ dx 2.0)) add-dx b)
      dx))
+
+;; ex1.25
+
+;; (define (expmod base exp m)
+;;   (cond ((= exp 0) 1)
+;;         ((even? exp)
+;;          (remainder (square (expmod base (/ exp 2) m))
+;;                     m))
+;;         (else
+;;          (remainder (* base (expmod base (- exp 1) m))
+;;                     m))))
+
+;; (define (expmod base exp m)
+;;   (remainder (fast-exp base exp) m))
+
+;; (define (fast-expt b n)
+;;   (cond ((= n 0) 1)
+;;         ((even? n) (square (fast-expt b (/ n 2))))
+;;         (else (* b (fast-expt b (- n 1))))))
+
+;; ex1-26
+
+
+;; (define (expmod base exp m)
+;;   (cond ((= exp 0) 1)
+;;         ((even? exp)
+;;          (remainder (square (expmod base (/ exp 2) m))
+;;                     m))
+;;         (else
+;;          (remainder (* base (expmod base (- exp 1) m))
+;;                     m))))
 
 
 ;; ex1.29
@@ -331,4 +397,46 @@
 ;; ex1.32
 
 (define (accumulate combiner null-value term a next b)
-  b)
+  (if (> a b)
+      null-value
+      (combiner (term a)
+                (accumulate combiner null-value term (next a) next b))))
+
+(define (sum-accum term a next b)
+  (accumulate + 0 term a next b))
+(define (product-accum term a next b)
+  (accumulate * 1 term a next b))
+
+(define (sum-integers-accum a b)
+  (sum-accum identity a inc b))
+(define (product-integers-accum a b)
+  (product-accum identity a inc b))
+
+(define (accumulate-iter combiner null-value term a next b)
+  (if (> a b)
+      null-value
+      (accumulate-iter combiner (combiner (term a) null-value) term a next b)))
+
+(define (sum-integers-accum-iter a b)
+  (sum-accum identity a inc b))
+(define (product-integers-accum-iter a b)
+  (product-accum identity a inc b))
+(define (sum-accum-iter term a next b)
+  (accumulate-iter + 0 term a next b))
+(define (product-accum-iter term a next b)
+  (accumulate-iter * 1 term a next b))
+
+;; ex1.33
+
+(define (accumulate combiner null-value term a next b)
+  (if (> a b)
+      null-value
+      (combiner (term a)
+                (accumulate combiner null-value term (next a) next b))))
+(define (filtered-accumulate predicate combiner null-value term a next b)
+  (if (> a b)
+      null-value
+      (if (predicate a)
+          (combiner (term a)
+                    (filtered-accumulate predicate combiner null-value term (next a) next b))
+          (filtered-accumulate predicate combiner null-value term a next b))))
