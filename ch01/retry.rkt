@@ -52,10 +52,10 @@
       guess
       (sqrt-iter (improve guess x)
                  x)))
-(define (improve guess x)
-  (average guess (/ x guess)))
 (define (average x y)
   (/ (+ x y) 2))
+(define (improve guess x)
+  (average guess (/ x guess)))
 (define (good-enough? guess x)
   (< (abs (- (square guess) x))
      0.001))
@@ -428,11 +428,11 @@
 
 ;; ex1.33
 
-(define (accumulate combiner null-value term a next b)
-  (if (> a b)
-      null-value
-      (combiner (term a)
-                (accumulate combiner null-value term (next a) next b))))
+;; (define (accumulate combiner null-value term a next b)
+;;   (if (> a b)
+;;       null-value
+;;       (combiner (term a)
+;;                 (accumulate combiner null-value term (next a) next b))))
 (define (filtered-accumulate predicate combiner null-value term a next b)
   (if (> a b)
       null-value
@@ -440,3 +440,293 @@
           (combiner (term a)
                     (filtered-accumulate predicate combiner null-value term (next a) next b))
           (filtered-accumulate predicate combiner null-value term a next b))))
+
+
+(define (pi-sum2 a b)
+  (sum (lambda (x) (/ 1.0 (* x (+ x 2))))
+       a
+       (lambda (x) (+ x 4))
+       b))
+
+(define (integral2 f a b dx)
+  (* (sum f
+          (+ a (/ dx 2.0))
+          (lambda (x) (+ x dx))
+          b)
+     dx))
+
+;; (define (f x y)
+;;   (let ((a (+ 1 (* x y)))
+;;         (b (- 1 y)))
+;;     (+ (* x (square a))
+;;        (* y b)
+;;        (* a b))))
+
+
+
+;; ex1-34
+
+(define (f g)
+  (g 2))
+(f square)
+(f (lambda (z) (* z (+ z 1))))
+
+(define (search f neg-point pos-point)
+  (let ((midpoint (average neg-point pos-point)))
+    (if (close-enough? neg-point pos-point)
+        midpoint
+        (let ((test-value (f midpoint)))
+          (cond ((positive? test-value)
+                 (search f neg-point midpoint))
+                ((negative? test-value)
+                 (search f midpoint pos-point))
+                (else midpoint))))))
+(define (close-enough? x y)
+  (< (abs (- x y)) 0.001))
+(define (half-interval-method f a b)
+  (let ((a-value (f a))
+        (b-value (f b)))
+    (cond ((and (negative? a-value) (positive? b-value))
+           (search f a b))
+          ((and (negative? b-value) (positive? a-value))
+           (search f b a))
+          (else
+           (error "Value are not of opposite sign" a b)))))
+
+(define tolerance 0.00001)
+
+(define (fixed-point f first-guess)
+  (define (close-enough? v1 v2)
+    (< (abs (- v1 v2)) tolerance))
+  (define (try guess)
+    (let ((next (f guess)))
+      (if (close-enough? guess next)
+          next
+          (try next))))
+  (try first-guess))
+
+(define (sqrt3 x)
+  (fixed-point (lambda (y) (average y (/ x y)))
+               1.0))
+
+;; ex1-35
+(fixed-point (lambda (x) (+ 1 (/ 1 x))) 1.0)
+
+;; ex1.36
+
+(define (fixed-point2 f first-guess)
+  (define (close-enough? v1 v2)
+    (< (abs (- v1 v2)) tolerance))
+  (define (try guess)
+    (let ((next (f guess)))
+      (display guess)
+      (newline)
+      (if (close-enough? guess next)
+          next
+          (try next))))
+  (display "start fix-point")
+  (newline)
+  (try first-guess))
+
+;; (fixed-point2 (lambda (x) (+ 1 (/ 1 x))) 1.0)
+(fixed-point2 (lambda (x) (/ (log 1000) (log x))) 2.0)
+
+;; ex1-37
+(display " expected")
+(/ 1 (fixed-point (lambda (x) (+ 1 (/ 1 x))) 1.0))
+(define (cont-frac k n d)
+  (define (cont-frac-recurs n d count)
+    (if (> count k)
+        0
+        (/ (n count)
+           (+ (d count)
+              (cont-frac-recurs n d (+ count 1))))))
+  (cont-frac-recurs n
+                    d
+                    1))
+
+(define (cont-frac2 k n d)
+  (define (cont-frac-iter n d count value)
+    (if (= count 0)
+        value
+        (cont-frac-iter n d (- count 1) (/ (n count)
+                                           (+ (d count) value)))))
+  (cont-frac-iter n
+                  d
+                  k
+                  0))
+
+(cont-frac 11 (lambda (i) 1.0) (lambda (i) 1.0))
+(cont-frac2 11 (lambda (i) 1.0) (lambda (i) 1.0))
+
+;; ex1-38
+(display "ex1-38")
+(+ 2 (cont-frac
+      11
+      (lambda (i) 1.0)
+      (lambda (i)
+        (cond ((= i 1) 1)
+              ((= i 2) 2)
+              (else (if (= (remainder i 3) 2)
+                        (* 2 (/ (+ i 1) 3))
+                        1))))))
+
+;; ex1-39
+
+;; (define (cont-frac k n d)
+;;   (define (cont-frac-recurs n d count)
+;;     (if (> count k)
+;;         0
+;;         (/ (n count)
+;;            (+ (d count)
+;;               (cont-frac-recurs n d (+ count 1))))))
+;;   (cont-frac-recurs n
+;;                     d
+;;                     1))
+
+(define (tan-cf x k)
+  (define (recurs n d count)
+    (if (> count k)
+        0
+        (/ (n count)
+           (- (d count)
+              (recurs n d (+ count 1))))))
+  (recurs
+   (lambda (i) (if (= i 1) x (square x)))
+   (lambda (i) (- (* i 2) 1))
+   1))
+
+(define (average-dump f)
+  (lambda (x) (average x (f x))))
+
+(define (sqrt4 x)
+  (fixed-point (average-dump (lambda (y) (/ x y)))
+               1.0))
+(define (cube-root2 x)
+  (fixed-point (average-dump (lambda (y) (/ x (square y))))
+               1.0))
+(define (deriv g)
+  (lambda (x)
+    (/ (- (g (+ x dx)) (g x))
+       dx)))
+(define dx 0.00001)
+(define (newton-transform g)
+  (lambda (x)
+    (- x (/ (g x) ((deriv g) x)))))
+(define (newtons-method g guess)
+  (fixed-point (newton-transform g) guess))
+(define (sqrt5 x)
+  (newtons-method (lambda (y) (- (square y) x))
+                  1.0))
+
+;; ex1-40
+
+;; ex1-41
+(define (double2 f)
+  (lambda (x) (f (f x))))
+
+;; ex1-42
+(define (compose f g)
+  (lambda (x) (f (g x))))
+((compose square inc) 6)
+
+;; ex1-43
+(define (repeated f n)
+  (if (> n 1)
+      (compose f (repeated f (- n 1)))
+      f))
+((repeated square 2) 5)
+
+;; ex1-44
+(define (smooth f)
+  (lambda (x)
+    (/ (+ (f (- x dx) (f x) (f (+ x dx))))
+       3)))
+(define (n-fold-smoothed f n)
+  ((repeated smooth n) f))
+
+;; ex1-46
+
+(define (iterative-improve good-enough? improve)
+  (define (recurs guess)
+    (if (good-enough? guess)
+        guess
+        (recurs (improve guess))))
+  (lambda (guess) (recurs guess)))
+
+(define (iterative-improve2 good-enough? improve)
+  (define (recurs guess)
+    (let ((next (improve guess)))
+      (if (good-enough? guess next)
+          next
+          (recurs next))))
+  (lambda (guess) (recurs guess)))
+
+;; (define (sqrt-iter guess x)
+;;   (if (good-enough? guess x)
+;;       guess
+;;       (sqrt-iter (improve guess x)
+;;                  x)))
+
+(define (sqrt-iterative-improve x)
+  (define (improve guess)
+    (average guess (/ x guess)))
+  (define (good-enough? guess)
+    (< (abs (- (square guess) x))
+       0.001))
+  ((iterative-improve good-enough? improve) 1.0))
+
+;; (define (fixed-point f first-guess)
+;;   (define (close-enough? v1 v2)
+;;     (< (abs (- v1 v2)) tolerance))
+;;   (define (try guess)
+;;     (let ((next (f guess)))
+;;       (if (close-enough? guess next)
+;;           next
+;;           (try next))))
+;;   (try first-guess))
+
+
+(define (fixed-point-iterative-improve f first-guess)
+  (define (close-enough? v1 v2)
+    (< (abs (- v1 v2)) tolerance))
+  ((iterative-improve2 close-enough? f) first-guess))
+
+(fixed-point (lambda (x) (+ 1 (/ 1 x))) 1.0)
+(fixed-point-iterative-improve (lambda (x) (+ 1 (/ 1 x))) 1.0)
+
+;; pair
+
+(define (add-rat x y)
+  (make-rat (+ (* (numer x) (denom y))
+               (* (numer y) (denom x)))
+            (* (denom x) (denom y))))
+(define (sub-rat x y)
+  (make-rat (- (* (numer x) (denom y))
+               (* (numer y) (denom x)))
+            (* (denom x) (denom y))))
+(define (mul-rat x y)
+  (make-rat (* (numer x) (numer y))
+            (* (denom x) (denom y))))
+(define (div-rat x y)
+  (make-rat (* (numer x) (denom y))
+            (* (denom x) (numer y))))
+(define (equal-rat? x y)
+  (= (* (numer x) (denom y))
+     (* (numer y) (denom x))))
+
+(define x (cons 1 2))
+(define (make-rat n d)
+  (let ((g (gcd n d)))
+    (cond ((and (< n 0) (> d 0))
+           (cons (/ n (abs g)) (/ d g)))
+          ((and (> n 0) (< d 0))
+           (cons (/ n g) (/ d g)))
+          (else (cons (/ n g) (/ d g))))))
+(define (numer x) (car x))
+(define (denom x) (cdr x))
+(define (print-rat x)
+  (newline)
+  (display (numer x))
+  (display "/")
+  (display (denom x)))
