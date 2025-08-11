@@ -716,6 +716,9 @@
      (* (numer y) (denom x))))
 
 (define x (cons 1 2))
+
+;; ex2-1
+
 (define (make-rat n d)
   (let ((g (gcd n d)))
     (cond ((and (< n 0) (> d 0))
@@ -730,3 +733,49 @@
   (display (numer x))
   (display "/")
   (display (denom x)))
+
+;; ex2-2
+(define (make-segment s e)
+  (cons s e))
+(define (start-segment s)
+  (car s))
+(define (end-segment s)
+  (cdr s))
+(define (make-point x y)
+  (cons x y))
+(define (x-point point)
+  (car point))
+(define (y-point point)
+  (cdr point))
+(define (midpoint-segment segment)
+  (make-point (/ (+ (x-point (start-segment segment))
+                      (x-point (end-segment segment))) 2)
+              (/ (+ (y-point (start-segment segment))
+                      (y-point (end-segment segment))) 2)))
+
+(define (print-point p)
+  (newline)
+  (display "(")
+  (display (x-point p))
+  (display ",")
+  (display (y-point p))
+  (display ")"))
+(define p1 (make-point 3 5))
+(define p2 (make-point 1 9))
+(define seg (make-segment p1 p2))
+(print-point (midpoint-segment seg))
+
+;; ex2-4
+;; (define (cons x y)
+;;   (lambda (m) (m x y)))
+;; (define (car z)
+;;   (z (lambda (p q) p)))
+;; (define (cdr z)
+;;   (z (lambda (p q) q)))
+
+;; ex2-6
+(define zero (lambda (f) (lambda (x) x)))
+(define (add-1 n)
+  (lambda (f) (lambda (x) (f (n f) x))))
+(define one (lambda (f) (lambda (x) (f x))))
+(define two (lambda (f) (lambda (x) (f (f x)))))
