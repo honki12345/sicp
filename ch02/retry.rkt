@@ -172,3 +172,89 @@
             (cons (car items) (iter (cdr items) first-item))
             (iter (cdr items) first-item))))
   (iter items (car items)))
+
+;; ex2-21
+
+(define (square x) (* x x))
+
+(define (square-list items)
+  (if (null? items)
+      null
+      (cons (square (car items))
+            (square-list (cdr items)))))
+(define (square-list2 items)
+  (map square items))
+
+;; ex2-22
+
+(define (square-list3 items)
+  (define (iter things answer)
+    (if (null? things)
+        answer
+        (iter (cdr things)
+              (cons (square (car things))
+                    answer))))
+  (iter items null))
+
+(define (square-list4 items)
+  (define (iter things answer)
+    (if (null? things)
+        answer
+        (iter (cdr things)
+              (cons answer
+                    (square (car things))))))
+  (iter items null))
+
+;; ex2-23
+(define (for-each proc items)
+  (unless (null? items)
+    (proc (car items))
+    (for-each proc (cdr items))))
+
+(define x2 (cons (list 1 2) (list 3 4)))
+(define (count-leaves x)
+  (cond ((null? x) 0)
+        ((not (pair? x)) 1)
+        (else (+ (count-leaves (car x))
+                 (count-leaves (cdr x))))))
+
+;; ex2-25
+(define ex2.25-1 (list 1 3 (list 5 7) 9))
+(car (cdr (car (cdr (cdr ex2.25-1)))))
+
+(define ex2.25-2 (list (list 7)))
+(car (car ex2.25-2))
+
+(define ex2.25-3 (list 1 (list 2 (list 3 (list 4 (list 5 (list 6 7)))))))
+(cadr (cadr (cadr (cadr (cadr (cadr ex2.25-3))))))
+
+;; ex2-26
+(define x6 (list 1 2 3))
+(define y6 (list 4 5 6))
+
+
+;; ex2-27
+;; (define (reverse items)
+;;   (if (= (length items) 1)
+;;       (list (car items))
+;;       (append (reverse (cdr items)) (list (car items)))))
+
+(define x7 (list (list (list 1 2) (list 2 3)) (list 3 4)))
+x7
+(reverse x7)
+(define (deep-reverse items)
+  (define (recurs item)
+    (cond ((not (pair? item))
+           item)
+          ((and (not (pair? (car item))) (not (pair? (cadr item))))
+           (reverse item))
+          (else
+           (reverse (cons (recurs (car item)) (recurs (cdr item)))))))
+  (reverse (map recurs items)))
+
+(define (deep-reverse2 x)
+  (if (pair? x)
+      (map deep-reverse2 (reverse x))
+      x))
+(deep-reverse x7)
+(deep-reverse2 x7)
