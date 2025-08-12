@@ -258,3 +258,14 @@ x7
       x))
 (deep-reverse x7)
 (deep-reverse2 x7)
+
+;; ex2-28
+(define x8 (list (list 1 2) (list 3 4)))
+(define (fringe items)
+  (cond ((null? items) items)
+        ((pair? (car items))
+         (append (fringe (car items))
+                 (fringe (cdr items))))
+        (else (cons (car items)
+                    (fringe (cdr items))))))
+
